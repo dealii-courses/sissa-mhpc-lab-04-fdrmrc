@@ -23,6 +23,8 @@
 #define poisson_include_file
 
 #include <deal.II/base/function.h>
+#include <deal.II/base/function_parser.h>
+#include <deal.II/base/parameter_acceptor.h>
 #include <deal.II/base/quadrature_lib.h>
 
 #include <deal.II/dofs/dof_handler.h>
@@ -55,16 +57,21 @@ class Poisson3DTester;
 
 using namespace dealii;
 template <int dim>
-class Poisson
+class Poisson : ParameterAcceptor
 {
 public:
   Poisson();
   void
   run();
 
+  void
+  initialize(const std::string &filename);
+
 protected:
   void
   make_grid();
+  void
+  refine_grid();
   void
   setup_system();
   void
@@ -72,16 +79,32 @@ protected:
   void
   solve();
   void
-  output_results() const;
+  output_results(const unsigned int cycle) const;
 
-  Triangulation<dim>   triangulation;
-  FE_Q<dim>            fe;
+  Triangulation<dim>         triangulation;
+  std::unique_ptr<FE_Q<dim>> fe;
   DoFHandler<dim>      dof_handler;
   SparsityPattern      sparsity_pattern;
   SparseMatrix<double> system_matrix;
   Vector<double>       solution;
   Vector<double>       system_rhs;
-  // friend class PoissonTester;
+
+
+
+  FunctionParser<dim> forcing_term;
+  FunctionParser<dim> boundary_condition;
+
+  unsigned int fe_degree               = 1;
+  unsigned int n_refinements           = 4; // here there's the default value
+  unsigned int n_refinement_cycles     = 1; // here there's the default value
+  std::string  output_file_name        = "poisson";
+  std::string  forcing_term_expression = "1";
+  std::string  boundary_condition_expression = "0";
+  std::map<std::string, double> constants;
+  std::string                   grid_generator_function  = "hyper_cube";
+  std::string                   grid_generator_arguments = "0: 1: false";
+
+  friend class Poisson1DTester;
   friend class Poisson2DTester;
   friend class Poisson3DTester;
 };
