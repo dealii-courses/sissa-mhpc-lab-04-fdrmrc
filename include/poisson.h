@@ -49,9 +49,12 @@
 #include <iostream>
 
 // Forward declare the tester class
-class PoissonTester;
+class Poisson1DTester;
+class Poisson2DTester;
+class Poisson3DTester;
 
 using namespace dealii;
+template <int dim>
 class Poisson
 {
 public:
@@ -71,15 +74,16 @@ protected:
   void
   output_results() const;
 
-  Triangulation<2>     triangulation;
-  FE_Q<2>              fe;
-  DoFHandler<2>        dof_handler;
+  Triangulation<dim>   triangulation;
+  FE_Q<dim>            fe;
+  DoFHandler<dim>      dof_handler;
   SparsityPattern      sparsity_pattern;
   SparseMatrix<double> system_matrix;
   Vector<double>       solution;
   Vector<double>       system_rhs;
-
-  friend class PoissonTester;
+  // friend class PoissonTester;
+  friend class Poisson2DTester;
+  friend class Poisson3DTester;
 };
 
 #endif
