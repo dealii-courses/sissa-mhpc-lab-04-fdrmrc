@@ -33,6 +33,9 @@ Poisson<dim>::Poisson()
   add_parameter("Grid generator function", grid_generator_function);
   add_parameter("Grid generator arguments", grid_generator_arguments);
   add_parameter("Number of refinement cycles", n_refinement_cycles);
+  this->prm.enter_subsection("Error table");
+  error_table.add_parameters(this->prm);
+  this->prm.leave_subsection();
 }
 
 
@@ -104,7 +107,7 @@ void
 Poisson<dim>::assemble_system()
 {
   QGauss<dim>                          quadrature_formula(fe->degree + 1);
-  FEValues<dim>                                          fe_values(*fe,
+  FEValues<dim>                        fe_values(*fe,
                           quadrature_formula,
                           update_values | update_gradients |
 
@@ -189,12 +192,14 @@ Poisson<dim>::run()
       setup_system();
       assemble_system();
       solve();
+      error_table.error_from_exact(dof_handler, solution, boundary_condition);
       output_results(cycle);
       if (cycle < n_refinement_cycles - 1)
         { // avoid refine the grid and use it afterwards
           refine_grid();
         }
     }
+  error_table.output_table(std::cout);
 }
 
 

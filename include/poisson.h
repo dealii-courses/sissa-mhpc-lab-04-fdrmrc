@@ -25,6 +25,7 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/function_parser.h>
 #include <deal.II/base/parameter_acceptor.h>
+#include <deal.II/base/parsed_convergence_table.h>
 #include <deal.II/base/quadrature_lib.h>
 
 #include <deal.II/dofs/dof_handler.h>
@@ -103,6 +104,10 @@ protected:
   std::map<std::string, double> constants;
   std::string                   grid_generator_function  = "hyper_cube";
   std::string                   grid_generator_arguments = "0: 1: false";
+
+
+
+  ParsedConvergenceTable error_table;
 
   friend class Poisson1DTester;
   friend class Poisson2DTester;
