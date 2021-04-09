@@ -84,22 +84,24 @@ protected:
 
   Triangulation<dim>         triangulation;
   std::unique_ptr<FE_Q<dim>> fe;
-  DoFHandler<dim>      dof_handler;
-  SparsityPattern      sparsity_pattern;
-  SparseMatrix<double> system_matrix;
-  Vector<double>       solution;
-  Vector<double>       system_rhs;
+  DoFHandler<dim>            dof_handler;
+  SparsityPattern            sparsity_pattern;
+  SparseMatrix<double>       system_matrix;
+  Vector<double>             solution;
+  Vector<double>             system_rhs;
 
 
 
   FunctionParser<dim> forcing_term;
   FunctionParser<dim> boundary_condition;
+  FunctionParser<dim> exact_solution;
 
-  unsigned int fe_degree               = 1;
-  unsigned int n_refinements           = 4; // here there's the default value
-  unsigned int n_refinement_cycles     = 1; // here there's the default value
-  std::string  output_file_name        = "poisson";
-  std::string  forcing_term_expression = "1";
+  unsigned int fe_degree           = 1;
+  unsigned int n_refinements       = 4; // here there's the default value
+  unsigned int n_refinement_cycles = 1; // here there's the default value
+  std::string  exact_solution_expression{};
+  std::string  output_file_name              = "poisson";
+  std::string  forcing_term_expression       = "1";
   std::string  boundary_condition_expression = "0";
   std::map<std::string, double> constants;
   std::string                   grid_generator_function  = "hyper_cube";

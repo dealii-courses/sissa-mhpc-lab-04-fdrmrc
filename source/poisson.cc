@@ -26,13 +26,14 @@ Poisson<dim>::Poisson()
 {
   add_parameter("Finite element degree", fe_degree);
   add_parameter("Number of global refinements", n_refinements);
+  add_parameter("Number of refinement cycles", n_refinement_cycles);
+  add_parameter("Exact solution expression", exact_solution_expression);
   add_parameter("Output filename", output_file_name);
   add_parameter("Forcing term expression", forcing_term_expression);
   add_parameter("Boundary condition expression", boundary_condition_expression);
   add_parameter("Problem constants", constants);
   add_parameter("Grid generator function", grid_generator_function);
   add_parameter("Grid generator arguments", grid_generator_arguments);
-  add_parameter("Number of refinement cycles", n_refinement_cycles);
   this->prm.enter_subsection("Error table");
   error_table.add_parameters(this->prm);
   this->prm.leave_subsection();
@@ -87,6 +88,12 @@ Poisson<dim>::setup_system()
                                                "x,y,z",
                                     boundary_condition_expression,
                                     constants);
+
+      exact_solution.initialize(dim == 1 ? "x" :
+                                dim == 2 ? "x,y" :
+                                           "x,y,z",
+                                exact_solution_expression,
+                                constants);
     }
   fe = std::make_unique<FE_Q<dim>>(fe_degree);
 
@@ -192,7 +199,7 @@ Poisson<dim>::run()
       setup_system();
       assemble_system();
       solve();
-      error_table.error_from_exact(dof_handler, solution, boundary_condition);
+      error_table.error_from_exact(dof_handler, solution, exact_solution);
       output_results(cycle);
       if (cycle < n_refinement_cycles - 1)
         { // avoid refine the grid and use it afterwards
