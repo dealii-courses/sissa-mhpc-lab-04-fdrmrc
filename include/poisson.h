@@ -64,6 +64,8 @@ public:
   Poisson();
   void
   run();
+  void
+  compute_error();
 
   void
   initialize(const std::string &filename);
@@ -95,6 +97,7 @@ protected:
   FunctionParser<dim> forcing_term;
   FunctionParser<dim> boundary_condition;
   FunctionParser<dim> exact_solution;
+  FunctionParser<dim> stiff_coefficient;
 
   unsigned int fe_degree           = 1;
   unsigned int n_refinements       = 4; // here there's the default value
@@ -103,6 +106,8 @@ protected:
   std::string  output_file_name              = "poisson";
   std::string  forcing_term_expression       = "1";
   std::string  boundary_condition_expression = "0";
+  std::string  stiff_coefficient_expression =
+    "1"; // default is 1, so that we have - div(1 \nabla{u})=- \Delta u = f
   std::map<std::string, double> constants;
   std::string                   grid_generator_function  = "hyper_cube";
   std::string                   grid_generator_arguments = "0: 1: false";

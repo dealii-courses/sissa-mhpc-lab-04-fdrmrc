@@ -34,6 +34,8 @@ Poisson<dim>::Poisson()
   add_parameter("Problem constants", constants);
   add_parameter("Grid generator function", grid_generator_function);
   add_parameter("Grid generator arguments", grid_generator_arguments);
+  add_parameter("Stiffness coefficient expression",
+                stiff_coefficient_expression);
   this->prm.enter_subsection("Error table");
   error_table.add_parameters(this->prm);
   this->prm.leave_subsection();
@@ -94,6 +96,12 @@ Poisson<dim>::setup_system()
                                            "x,y,z",
                                 exact_solution_expression,
                                 constants);
+
+      stiff_coefficient.initialize(dim == 1 ? "x" :
+                                   dim == 2 ? "x,y" :
+                                              "x,y,z",
+                                   stiff_coefficient_expression,
+                                   constants);
     }
   fe = std::make_unique<FE_Q<dim>>(fe_degree);
 
@@ -114,10 +122,9 @@ void
 Poisson<dim>::assemble_system()
 {
   QGauss<dim>                          quadrature_formula(fe->degree + 1);
-  FEValues<dim>                        fe_values(*fe,
+  FEValues<dim>                                          fe_values(*fe,
                           quadrature_formula,
                           update_values | update_gradients |
-
                             update_quadrature_points | update_JxW_values);
   const unsigned int                   dofs_per_cell = fe->n_dofs_per_cell();
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
@@ -130,10 +137,13 @@ Poisson<dim>::assemble_system()
       cell_rhs    = 0;
       for (const unsigned int q_index : fe_values.quadrature_point_indices())
         {
+          const double current_coefficient = stiff_coefficient.value(fe_values.quadrature_point(q_index));
+          // std::cout << current_coefficient << "\n";
           for (const unsigned int i : fe_values.dof_indices())
             for (const unsigned int j : fe_values.dof_indices())
               cell_matrix(i, j) +=
-                (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                (current_coefficient *              // a(x_q)
+                 fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                  fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                  fe_values.JxW(q_index));           // dx
           for (const unsigned int i : fe_values.dof_indices())
@@ -199,7 +209,7 @@ Poisson<dim>::run()
       setup_system();
       assemble_system();
       solve();
-      error_table.error_from_exact(dof_handler, solution, exact_solution);
+      compute_error();
       output_results(cycle);
       if (cycle < n_refinement_cycles - 1)
         { // avoid refine the grid and use it afterwards
@@ -209,7 +219,12 @@ Poisson<dim>::run()
   error_table.output_table(std::cout);
 }
 
-
+template <int dim>
+void
+Poisson<dim>::compute_error()
+{
+  error_table.error_from_exact(dof_handler, solution, exact_solution);
+}
 
 template class Poisson<1>;
 template class Poisson<2>;
