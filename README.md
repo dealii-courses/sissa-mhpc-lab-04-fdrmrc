@@ -97,6 +97,11 @@ text format to a file.
 members to the `Poisson` class, so that the problem you will be solving is 
 $-div(coefficient(x)\nabla u) = f(x)$.
 
+- In the example I set `a(x,y)=sin(x)`. By assuming `u(x,y)=sin(pi*x)*sin(pi*y)` to be the exact solution,
+the forcing term is `f(x,y)=pi*cos(pi*y)*(2*pi*sin(x)*sin(pi*x)-cos(x)*cos(pi*x))`.
+
+In the convergence table you can see the EOC, while in the folder pictures you can see the .vtk file with the solution.
+
 9. Construct a (non-singular!) manufactured solution where `coefficient` is a
 discontinuous function. Notice that the manufactured solution may need a
 discontinuous forcing term on the right hand side, but should not have other

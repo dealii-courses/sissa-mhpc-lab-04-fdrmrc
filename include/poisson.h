@@ -23,6 +23,9 @@
 #define poisson_include_file
 
 #include <deal.II/base/function.h>
+#include <deal.II/base/function_parser.h>
+#include <deal.II/base/parameter_acceptor.h>
+#include <deal.II/base/parsed_convergence_table.h>
 #include <deal.II/base/quadrature_lib.h>
 
 #include <deal.II/dofs/dof_handler.h>
@@ -49,19 +52,29 @@
 #include <iostream>
 
 // Forward declare the tester class
-class PoissonTester;
+class Poisson1DTester;
+class Poisson2DTester;
+class Poisson3DTester;
 
 using namespace dealii;
-class Poisson
+template <int dim>
+class Poisson : ParameterAcceptor
 {
 public:
   Poisson();
   void
   run();
+  void
+  compute_error();
+
+  void
+  initialize(const std::string &filename);
 
 protected:
   void
   make_grid();
+  void
+  refine_grid();
   void
   setup_system();
   void
@@ -69,17 +82,43 @@ protected:
   void
   solve();
   void
-  output_results() const;
+  output_results(const unsigned int cycle) const;
 
-  Triangulation<2>     triangulation;
-  FE_Q<2>              fe;
-  DoFHandler<2>        dof_handler;
-  SparsityPattern      sparsity_pattern;
-  SparseMatrix<double> system_matrix;
-  Vector<double>       solution;
-  Vector<double>       system_rhs;
+  Triangulation<dim>         triangulation;
+  std::unique_ptr<FE_Q<dim>> fe;
+  DoFHandler<dim>            dof_handler;
+  SparsityPattern            sparsity_pattern;
+  SparseMatrix<double>       system_matrix;
+  Vector<double>             solution;
+  Vector<double>             system_rhs;
 
-  friend class PoissonTester;
+
+
+  FunctionParser<dim> forcing_term;
+  FunctionParser<dim> boundary_condition;
+  FunctionParser<dim> exact_solution;
+  FunctionParser<dim> stiff_coefficient;
+
+  unsigned int fe_degree           = 1;
+  unsigned int n_refinements       = 4; // here there's the default value
+  unsigned int n_refinement_cycles = 1; // here there's the default value
+  std::string  exact_solution_expression{};
+  std::string  output_file_name              = "poisson";
+  std::string  forcing_term_expression       = "1";
+  std::string  boundary_condition_expression = "0";
+  std::string  stiff_coefficient_expression =
+    "1"; // default is 1, so that we have - div(1 \nabla{u})=- \Delta u = f
+  std::map<std::string, double> constants;
+  std::string                   grid_generator_function  = "hyper_cube";
+  std::string                   grid_generator_arguments = "0: 1: false";
+
+
+
+  ParsedConvergenceTable error_table;
+
+  friend class Poisson1DTester;
+  friend class Poisson2DTester;
+  friend class Poisson3DTester;
 };
 
 #endif
